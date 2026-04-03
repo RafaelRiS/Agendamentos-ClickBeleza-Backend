@@ -5,7 +5,7 @@ from database import Base
 class Appointment(Base):
     __tablename__ = "appointments"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
     client_name = Column(String)
     client_phone = Column(String)
     service = Column(String)
