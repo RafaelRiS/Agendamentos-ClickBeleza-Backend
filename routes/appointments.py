@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models.appointment import Appointment
+from fastapi import Query
+from typing import List
 from datetime import datetime, timedelta
 import os
 
@@ -16,13 +18,16 @@ def get_db():
         db.close()
 
 class AppointmentCreate(BaseModel):
-    name: str
-    phone: str
+    client_name: str
+    client_phone: str
     service: str
     barber: str
     date: str
     time: str
     duration: int
+
+    class Config:
+        from_attributes = True
 
 def to_minutes(time_str: str):
     h, m = map(int, time_str.split(":"))
@@ -72,8 +77,14 @@ def create_appointment(data: AppointmentCreate, db: Session = Depends(get_db)):
 
     return appointment
 
-@router.get("/appointments")
-def list_appointments(db: Session = Depends(get_db)):
-    appointments = db.query(Appointment).all()
-    print("BANCO:", os.path.abspath("scheduler.db"))
-    return appointments
+@router.get("/appointments", response_model=List[AppointmentCreate])
+def list_appointments(
+    phone: str = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Appointment)
+
+    if phone:
+        query = query.filter(Appointment.client_phone == phone)
+
+    return query.all()
