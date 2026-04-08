@@ -9,6 +9,7 @@ __pycache__/
 
 # Banco de dados
 *.db
+scheduler.db
 *.sqlite3
 
 # Variáveis de ambiente
