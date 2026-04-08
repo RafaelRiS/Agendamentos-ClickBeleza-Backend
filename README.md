@@ -30,4 +30,9 @@ API responsável pelo gerenciamento de agendamentos do sistema ClickBeleza.
 ### 1. Clonar o repositório
 ```bash
 git clone https://github.com/RafaelRiS/Agendamentos-ClickBeleza-Backend.git
-cd Agendamentos-ClickBeleza-Backend
+Crie sua Venv com o nome que desejar
+Entre na pasta Scripts pelo terminal
+Escreva 'activate'
+Agora volte para a pasta raiz do projeto dando 'cd ..' x2
+Instale tudo que esta presente no arquivo 'requeriments.txt' colocando no terminal: 'pip install -r requirements.txt' e apertando a tecla 'Enter'
+e rode a aplicação com 'uvicorn main:app --reload'
