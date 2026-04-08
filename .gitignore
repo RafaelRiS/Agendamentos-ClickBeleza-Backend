@@ -3,6 +3,7 @@ venv/
 env/
 .venv/
 .idea/
+# Pastas obsoletas
 
 # Python cache
 __pycache__/
