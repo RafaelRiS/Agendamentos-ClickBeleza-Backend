@@ -4,6 +4,12 @@ from routes import appointments, users
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "https://agendamentos-click-beleza-frontend-5ofhcy4xc-rafaelris-projects.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
