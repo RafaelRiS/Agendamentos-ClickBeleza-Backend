@@ -12,14 +12,11 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# cria as tabelas no banco quando em SQLite
-# Base.metadata.create_all(bind=engine)
 
 app.include_router(appointments.router)
 app.include_router(users.router)
