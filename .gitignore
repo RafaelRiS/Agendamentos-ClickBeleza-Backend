@@ -12,6 +12,7 @@ __pycache__/
 *.db
 scheduler.db
 *.sqlite3
+agendamentos/
 
 # Variáveis de ambiente
 .env
