@@ -1,19 +1,17 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from database import Base
 
 
-class User(Base):
-    __tablename__ = "users"
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    role: str = "client"
 
-    id = Column(Integer, primary_key=True, index=True)
 
-    name = Column(String, nullable=False)
-
-    email = Column(String, unique=True, index=True, nullable=False)
-
-    password = Column(String, nullable=False)
-
-    role = Column(String, default="client")
-
-    created_at = Column(DateTime, default=datetime.utcnow)
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    role: str
+    created_at: datetime

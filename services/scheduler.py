@@ -1,11 +1,16 @@
+from database import appointments_collection
+
+
 class Scheduler:
 
-    def __init__(self, database):
-        self.db = database
+    def __init__(self):
+        self.collection = appointments_collection
 
-        def get_available_slots(self, barber_id, date, duration):
-            appointments = self.db.get_appointments(barber_id, date)
+    def get_available_slots(self, barber, date, duration):
+        appointments = self.collection.find({
+            "barber": barber,
+            "date": date
+        })
 
-            # lógica para calcular horários livres
-            return []
-
+        # Aqui entra a lógica para calcular os horários livres
+        return []

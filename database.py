@@ -1,16 +1,14 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+import os
+from dotenv import load_dotenv
+from pymongo import MongoClient
 
-DATABASE_URL = "sqlite:///./scheduler.db"
+load_dotenv()
 
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
-)
+MONGO_URL = os.getenv("MONGODB_URI")
 
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+client = MongoClient(MONGO_URL)
 
-Base = declarative_base()
+db = client["click_beleza"]
+
+appointments_collection = db["agendamentos"]
+users_collection = db["users"]

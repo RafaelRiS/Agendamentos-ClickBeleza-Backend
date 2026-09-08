@@ -1,22 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from database import SessionLocal
-from models.appointment import Appointment
-from fastapi import Query
+from database import appointments_collection
 from typing import List
-from fastapi import Header, HTTPException
-from datetime import datetime, timedelta
-import os
+from bson import ObjectId
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 class AppointmentCreate(BaseModel):
     client_name: str
@@ -27,11 +16,9 @@ class AppointmentCreate(BaseModel):
     time: str
     duration: int
 
-    class Config:
-        from_attributes = True
 
 class AppointmentResponse(BaseModel):
-    id: int
+    id: str
     client_name: str
     client_phone: str
     service: str
@@ -40,98 +27,148 @@ class AppointmentResponse(BaseModel):
     time: str
     duration: int
 
-    class Config:
-        from_attributes = True
 
 def to_minutes(time_str: str):
     h, m = map(int, time_str.split(":"))
     return h * 60 + m
 
+
 ADMIN_PASSWORD = "123456"
+
 
 def verify_admin(password: str = Header(...)):
     if password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=403, detail="Não autorizado")
+        raise HTTPException(
+            status_code=403,
+            detail="Não autorizado"
+        )
+
+
+def appointment_to_response(appointment):
+    return {
+        "id": str(appointment["_id"]),
+        "client_name": appointment["client_name"],
+        "client_phone": appointment["client_phone"],
+        "service": appointment["service"],
+        "barber": appointment["barber"],
+        "date": appointment["date"],
+        "time": appointment["time"],
+        "duration": appointment["duration"],
+    }
+
 
 @router.post("/appointments")
-def create_appointment(data: AppointmentCreate, db: Session = Depends(get_db)):
-    # 🚫 Verifica se já existe agendamento no mesmo horário
-    existing = db.query(Appointment).filter(
-        Appointment.date == data.date,
-        Appointment.time == data.time,
-        Appointment.barber == data.barber
-    ).first()
-
-    duration: int = data.duration  # você pode melhorar isso depois
+def create_appointment(data: AppointmentCreate):
 
     new_start = to_minutes(data.time)
-    new_end = new_start + duration
+    new_end = new_start + data.duration
 
-    appointments = db.query(Appointment).filter(
-        Appointment.date == data.date,
-        Appointment.barber == data.barber
-    ).all()
+    appointments = appointments_collection.find({
+        "date": data.date,
+        "barber": data.barber
+    })
 
     for appt in appointments:
-        existing_start = to_minutes(appt.time)
-        existing_end = existing_start + appt.duration  # ou salvar duration no banco
 
-        # 🔥 REGRA DE CONFLITO
+        existing_start = to_minutes(appt["time"])
+        existing_end = existing_start + appt["duration"]
+
         if new_start < existing_end and new_end > existing_start:
-            return {"error": "Horário já ocupado"}
+            return {
+                "error": "Horário já ocupado"
+            }
 
-    # ✅ Se não existir, salva
-    appointment = Appointment(
-        client_name=data.client_name,
-        client_phone=data.client_phone,
-        service=data.service,
-        barber=data.barber,
-        date=data.date,
-        time=data.time,
-        duration=data.duration,
-    )
+    appointment = {
+        "client_name": data.client_name,
+        "client_phone": data.client_phone,
+        "service": data.service,
+        "barber": data.barber,
+        "date": data.date,
+        "time": data.time,
+        "duration": data.duration,
+    }
 
-    db.add(appointment)
-    db.commit()
-    db.refresh(appointment)
+    result = appointments_collection.insert_one(appointment)
 
-    return appointment
+    appointment["_id"] = result.inserted_id
 
-@router.get("/appointments", response_model=List[AppointmentResponse])
-def list_appointments(
+    return appointment_to_response(appointment)
 
-    phone: str = None,
-    db: Session = Depends(get_db)
-):
-    query = db.query(Appointment)
+
+@router.get(
+    "/appointments",
+    response_model=List[AppointmentResponse]
+)
+def list_appointments(phone: str = None):
+
+    query = {}
 
     if phone:
-        query = query.filter(Appointment.client_phone == phone)
+        query["client_phone"] = phone
 
-    return query.all()
+    appointments = appointments_collection.find(query)
+
+    return [
+        appointment_to_response(appt)
+        for appt in appointments
+    ]
+
 
 @router.delete("/appointments/{id}")
-def delete_appointment(id: int, db: Session = Depends(get_db)):
-    appointment = db.query(Appointment).filter(Appointment.id == id).first()
+def delete_appointment(id: str):
 
-    if not appointment:
-        return {"error": "Agendamento não encontrado"}
+    if not ObjectId.is_valid(id):
+        return {
+            "error": "ID inválido"
+        }
 
-    db.delete(appointment)
-    db.commit()
+    result = appointments_collection.delete_one({
+        "_id": ObjectId(id)
+    })
 
-    return {"message": "Agendamento deletado"}
+    if result.deleted_count == 0:
+        return {
+            "error": "Agendamento não encontrado"
+        }
+
+    return {
+        "message": "Agendamento deletado"
+    }
+
 
 @router.put("/appointments/{id}")
-def update_appointment(id: int, data: dict, db: Session = Depends(get_db)):
-    appointment = db.query(Appointment).filter(Appointment.id == id).first()
+def update_appointment(
+    id: str,
+    data: dict
+):
+
+    if not ObjectId.is_valid(id):
+        return {
+            "error": "ID inválido"
+        }
+
+    appointment = appointments_collection.find_one({
+        "_id": ObjectId(id)
+    })
 
     if not appointment:
-        return {"error": "Agendamento não encontrado"}
+        return {
+            "error": "Agendamento não encontrado"
+        }
 
-    appointment.service = data.get("service", appointment.service)
+    update_data = {}
 
-    db.commit()
-    db.refresh(appointment)
+    if "service" in data:
+        update_data["service"] = data["service"]
 
-    return appointment
+    if update_data:
+        appointments_collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": update_data}
+        )
+
+    updated = appointments_collection.find_one({
+        "_id": ObjectId(id)
+    })
+
+    return appointment_to_response(updated)

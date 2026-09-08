@@ -1,11 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import engine, Base
-from models.appointment import Appointment
 from routes import appointments, users
-from pydantic import BaseModel
-
-from routes.appointments import AppointmentCreate
 
 app = FastAPI()
 
@@ -17,8 +12,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# cria as tabelas no banco
-Base.metadata.create_all(bind=engine)
+# cria as tabelas no banco quando em SQLite
+# Base.metadata.create_all(bind=engine)
 
 app.include_router(appointments.router)
 app.include_router(users.router)
