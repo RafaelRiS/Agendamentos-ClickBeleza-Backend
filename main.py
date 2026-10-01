@@ -9,6 +9,9 @@ origins = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
     "https://agendamentos-click-beleza-frontend-5ofhcy4xc-rafaelris-projects.vercel.app",
+    "https://agendamentos-click-beleza-frontend.vercel.app/",
+    "https://agendamentos-click-beleza-frontend-kv84bi6gn-rafaelris-projects.vercel.app/",
+    "https://agendamentos-click-beleza-frontend-git-main-rafaelris-projects.vercel.app/",
 ]
 
 app.add_middleware(
