@@ -13,4 +13,6 @@ db = client["click_beleza"]
 appointments_collection = db["agendamentos"]
 users_collection = db["users"]
 analytics_collection = db["analytics"]
+feedback_collection = db["feedback"]
+
 
