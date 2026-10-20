@@ -20,8 +20,27 @@ artifact = joblib.load(MODEL_FILE)
 model = artifact["model"]
 FEATURES = artifact["features"]
 
+def is_test_client(phone: str) -> bool:
+    appointment = appointments_collection.find_one(
+        {"client_phone": phone},
+        {"client_name": 1, "client_phone": 1}
+    )
+
+    if not appointment:
+        return False
+
+    name = str(appointment.get("client_name", ""))
+    client_phone = str(appointment.get("client_phone", ""))
+
+    return (
+        "teste" in name.casefold()
+        or "teste" in client_phone.casefold()
+    )
 
 def get_client_analysis(phone: str, today: date):
+    if is_test_client(phone):
+        return None
+
     appointments = list(
         appointments_collection.find({
             "client_phone": phone,
