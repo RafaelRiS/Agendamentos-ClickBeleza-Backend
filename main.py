@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import appointments, users, analytics, feedback
+from routes import appointments, users, analytics, feedback, retention
 
 app = FastAPI()
 
@@ -27,3 +27,4 @@ app.include_router(appointments.router)
 app.include_router(users.router)
 app.include_router(analytics.router)
 app.include_router(feedback.router)
+app.include_router(retention.router)
