@@ -31,11 +31,12 @@ SEED = 20261020
 
 SERVICOS = [
     ("Volume 8D", 60),
+    ("Volume Egípcio", 60),
+    ("Remoção", 30),
+    ("Efeito molhado marrom", 60),
+    ("Fox Eyes", 60),
     ("Manutenção Volume 8D", 60),
-    ("Volume Brasileiro", 90),
-    ("Fox Eyes", 90),
-    ("Volume Egípcio", 90),
-    ("Lash Lifting", 60),
+    ("Manutenção Volume Egípcio", 60),
 ]
 
 PROFISSIONAIS = [
